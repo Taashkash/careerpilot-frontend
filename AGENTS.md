@@ -29,8 +29,8 @@ use the editor.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
 
-- Domain types live in src/lib/types.ts and demo data in src/lib/demo-data.ts; pages import only from there so a backend can replace the data source in one place.
+- Domain types live in src/lib/types.ts; all database reads are queryOptions in src/lib/api/queries.ts and writes are hooks in src/lib/api/mutations.ts, so pages never call the database client directly.
 - The dashboard shell (src/components/layout) wraps every route from __root except PUBLIC_PATHS in app-shell.tsx; nav items are defined once in nav-items.ts so all navigation stays consistent.
-- Frontend demos share React-only state in DemoProvider; refresh and demo logout reset it, with no backend calls or browser persistence, so simulated accounts and progress never imply real authentication or storage.
-- Reuse CareerFields, ResumeUpload and LearningPreferences across pages; resume Files remain in memory and are never parsed or transmitted during the frontend phase.
-- Demo role profiles, projects and weekly plans live in src/lib/demo-data.ts; pure validation and filtering live in src/lib/demo-rules.ts so future integrations can replace data without changing page layout.
+- Signed-in pages live under src/routes/_authenticated (client-only gate redirecting to /login) and load data via route loaders + useSuspenseQuery; user tables are protected by RLS on user_id = auth.uid(), so client queries need no user filter.
+- Reuse CareerFields, ResumeUpload and LearningPreferences across pages; resumes upload to the private `resumes` bucket under a `<user_id>/` folder with one resumes row per user.
+- Role skill presets and plan templates live in src/lib/demo-data.ts (copied into per-user rows; analysis scores come from presets until AI is connected); pure rules live in src/lib/demo-rules.ts with tests in src/test.

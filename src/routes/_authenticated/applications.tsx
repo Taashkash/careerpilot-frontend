@@ -133,7 +133,7 @@ function Applications() {
               </Select>
             </div>
             {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
-            <p className="text-xs text-muted-foreground">Changes are temporary and reset on refresh.</p>
+            <p className="text-xs text-muted-foreground">Saved to your account.</p>
             <DialogFooter><Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button><Button type="submit" disabled={save.isPending}>{save.isPending ? "Saving…" : "Save"}</Button></DialogFooter>
           </form>
         </DialogContent>

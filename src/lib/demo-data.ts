@@ -1,4 +1,4 @@
-// Demo data only. Replace each export with a query to the database / API later.
+// Templates and presets: role skill profiles, roadmap/week plan templates copied into each user's plan, and the landing preview. User data lives in the database (src/lib/api).
 import type { CareerBackground, JobApplication, Notification, PortfolioProject, RoadmapPhase, SkillLevel, UserProfile, WeeklyPlan } from "./types";
 
 export const demoUser: UserProfile = {

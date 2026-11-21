@@ -21,7 +21,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </Sheet>
       <div className="flex min-w-0 flex-1 flex-col">
         <TopBar onMenu={() => setOpen(true)} />
-        <div role="status" className="border-b bg-primary-soft px-4 py-2 text-xs text-primary md:px-8">Frontend demo · Changes are temporary and reset on refresh. No real authentication or AI analysis.</div>
+        <div role="status" className="border-b bg-primary-soft px-4 py-2 text-xs text-primary md:px-8">Your progress is saved to your account. AI resume analysis is coming soon; skill scores use preset role profiles for now.</div>
         <main className="mx-auto w-full max-w-7xl flex-1 p-4 md:p-8">{children}</main>
       </div>
     </div>
