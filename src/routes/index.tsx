@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, BarChart3, Briefcase, Compass, Layers, LayoutDashboard, Map, Menu, Radar, Search, Sparkles, UserPlus, X, ListChecks, FolderKanban, HelpCircle } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { sessionQuery } from "@/lib/api/queries";
 import { Logo } from "@/components/landing/logo";
 import { DashboardPreview } from "@/components/landing/dashboard-preview";
 
@@ -46,6 +48,8 @@ const steps = [
 
 function Landing() {
   const [open, setOpen] = useState(false);
+  const { data: sessionUser } = useQuery(sessionQuery);
+  const signedIn = !!sessionUser;
   return (
     <div className="min-h-screen bg-card">
       <header className="sticky top-0 z-30 border-b bg-card/80 backdrop-blur">
@@ -55,8 +59,9 @@ function Landing() {
             {navLinks.map((l) => <a key={l.href} href={l.href} className="text-sm text-muted-foreground transition-colors hover:text-foreground">{l.label}</a>)}
           </nav>
           <div className="ml-auto hidden items-center gap-2 md:flex">
+            {signedIn ? <Button asChild><Link to="/dashboard">Go to dashboard</Link></Button> : <>
             <Button variant="ghost" asChild><Link to="/login">Log In</Link></Button>
-            <Button asChild><Link to="/signup">Get Started</Link></Button>
+            <Button asChild><Link to="/signup">Get Started</Link></Button></>}
           </div>
           <Button variant="ghost" size="icon" className="ml-auto md:hidden" onClick={() => setOpen(!open)} aria-label="Toggle menu">
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -68,8 +73,9 @@ function Landing() {
               {navLinks.map((l) => <a key={l.href} href={l.href} onClick={() => setOpen(false)} className="text-sm">{l.label}</a>)}
             </nav>
             <div className="mt-4 grid grid-cols-2 gap-2">
+              {signedIn ? <Button asChild className="col-span-2"><Link to="/dashboard">Go to dashboard</Link></Button> : <>
               <Button variant="outline" asChild><Link to="/login">Log In</Link></Button>
-              <Button asChild><Link to="/signup">Get Started</Link></Button>
+              <Button asChild><Link to="/signup">Get Started</Link></Button></>}
             </div>
           </div>
         )}

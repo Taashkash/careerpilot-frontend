@@ -14,7 +14,460 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      job_applications: {
+        Row: {
+          applied_on: string
+          company: string
+          created_at: string
+          id: string
+          interview_on: string | null
+          job_url: string | null
+          location: string
+          notes: string | null
+          role: string
+          salary: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          applied_on?: string
+          company: string
+          created_at?: string
+          id?: string
+          interview_on?: string | null
+          job_url?: string | null
+          location?: string
+          notes?: string | null
+          role: string
+          salary?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          applied_on?: string
+          company?: string
+          created_at?: string
+          id?: string
+          interview_on?: string | null
+          job_url?: string | null
+          location?: string
+          notes?: string | null
+          role?: string
+          salary?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      learning_plan_weeks: {
+        Row: {
+          completed: boolean
+          completed_at: string | null
+          created_at: string
+          exercise: string
+          hours: number
+          id: string
+          objective: string
+          project: string
+          resource: string
+          task_key: string
+          topic: string
+          updated_at: string
+          url: string
+          user_id: string
+          week: number
+        }
+        Insert: {
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          exercise?: string
+          hours?: number
+          id?: string
+          objective?: string
+          project?: string
+          resource?: string
+          task_key?: string
+          topic: string
+          updated_at?: string
+          url?: string
+          user_id: string
+          week: number
+        }
+        Update: {
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          exercise?: string
+          hours?: number
+          id?: string
+          objective?: string
+          project?: string
+          resource?: string
+          task_key?: string
+          topic?: string
+          updated_at?: string
+          url?: string
+          user_id?: string
+          week?: number
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          read: boolean
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          read?: boolean
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          read?: boolean
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      portfolio_projects: {
+        Row: {
+          created_at: string
+          deliverables: string[]
+          description: string
+          difficulty: string
+          duration: string
+          id: string
+          position: number
+          skills: string[]
+          target_role: string
+          technologies: string[]
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          deliverables?: string[]
+          description?: string
+          difficulty?: string
+          duration?: string
+          id: string
+          position?: number
+          skills?: string[]
+          target_role?: string
+          technologies?: string[]
+          title: string
+        }
+        Update: {
+          created_at?: string
+          deliverables?: string[]
+          description?: string
+          difficulty?: string
+          duration?: string
+          id?: string
+          position?: number
+          skills?: string[]
+          target_role?: string
+          technologies?: string[]
+          title?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          bio: string
+          created_at: string
+          current_position: string
+          education: string
+          experience: string
+          full_name: string
+          industry: string
+          learning_format: string
+          location: string
+          notify_interview: boolean
+          notify_tips: boolean
+          notify_weekly: boolean
+          onboarded: boolean
+          soft_skills: string
+          study_hours: number
+          target_role: string
+          technical_skills: string
+          timeline: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bio?: string
+          created_at?: string
+          current_position?: string
+          education?: string
+          experience?: string
+          full_name?: string
+          industry?: string
+          learning_format?: string
+          location?: string
+          notify_interview?: boolean
+          notify_tips?: boolean
+          notify_weekly?: boolean
+          onboarded?: boolean
+          soft_skills?: string
+          study_hours?: number
+          target_role?: string
+          technical_skills?: string
+          timeline?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bio?: string
+          created_at?: string
+          current_position?: string
+          education?: string
+          experience?: string
+          full_name?: string
+          industry?: string
+          learning_format?: string
+          location?: string
+          notify_interview?: boolean
+          notify_tips?: boolean
+          notify_weekly?: boolean
+          onboarded?: boolean
+          soft_skills?: string
+          study_hours?: number
+          target_role?: string
+          technical_skills?: string
+          timeline?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      resumes: {
+        Row: {
+          created_at: string
+          file_name: string
+          id: string
+          mime_type: string
+          size_bytes: number
+          storage_path: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          id?: string
+          mime_type?: string
+          size_bytes?: number
+          storage_path: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          id?: string
+          mime_type?: string
+          size_bytes?: number
+          storage_path?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      roadmap_tasks: {
+        Row: {
+          created_at: string
+          done: boolean
+          hours: number
+          id: string
+          phase_key: string
+          phase_position: number
+          phase_title: string
+          phase_weeks: string
+          position: number
+          resource: string
+          task_key: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          done?: boolean
+          hours?: number
+          id?: string
+          phase_key: string
+          phase_position?: number
+          phase_title: string
+          phase_weeks?: string
+          position?: number
+          resource?: string
+          task_key: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          done?: boolean
+          hours?: number
+          id?: string
+          phase_key?: string
+          phase_position?: number
+          phase_title?: string
+          phase_weeks?: string
+          position?: number
+          resource?: string
+          task_key?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      skill_analyses: {
+        Row: {
+          created_at: string
+          id: string
+          job_description: string
+          readiness: number
+          target_role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          job_description?: string
+          readiness?: number
+          target_role: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          job_description?: string
+          readiness?: number
+          target_role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      skill_gaps: {
+        Row: {
+          analysis_id: string
+          category: string
+          created_at: string
+          current_level: number
+          id: string
+          position: number
+          required_level: number
+          skill: string
+          user_id: string
+        }
+        Insert: {
+          analysis_id: string
+          category?: string
+          created_at?: string
+          current_level: number
+          id?: string
+          position?: number
+          required_level: number
+          skill: string
+          user_id: string
+        }
+        Update: {
+          analysis_id?: string
+          category?: string
+          created_at?: string
+          current_level?: number
+          id?: string
+          position?: number
+          required_level?: number
+          skill?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "skill_gaps_analysis_id_fkey"
+            columns: ["analysis_id"]
+            isOneToOne: false
+            referencedRelation: "skill_analyses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      target_roles: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          name: string
+          position: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          id?: string
+          name: string
+          position?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          name?: string
+          position?: number
+        }
+        Relationships: []
+      }
+      user_projects: {
+        Row: {
+          completed: boolean
+          completed_at: string | null
+          created_at: string
+          project_id: string
+          saved: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          project_id: string
+          saved?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          project_id?: string
+          saved?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_projects_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "portfolio_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

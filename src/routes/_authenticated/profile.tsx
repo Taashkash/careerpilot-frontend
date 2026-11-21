@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -7,15 +8,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { SectionCard } from "@/components/common/section-card";
-import { demoUser } from "@/lib/demo-data";
 import { initials } from "@/lib/utils";
 import type { UserProfile } from "@/lib/types";
-import { useDemo } from "@/components/demo-provider";
+import { profileQuery, resumeQuery } from "@/lib/api/queries";
+import { useSaveProfile } from "@/lib/api/mutations";
+import { isValidEmail } from "@/lib/demo-rules";
 import { CareerFields } from "@/components/common/career-fields";
 import { ResumeUpload } from "@/components/common/resume-upload";
 import { LearningPreferences } from "@/components/common/learning-preferences";
 
-export const Route = createFileRoute("/profile")({
+export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({
     meta: [
       { title: "Profile — CareerPilot AI" },
@@ -26,6 +28,7 @@ export const Route = createFileRoute("/profile")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
+  loader: ({ context }) => Promise.all([context.queryClient.ensureQueryData(profileQuery), context.queryClient.ensureQueryData(resumeQuery)]),
   component: Profile,
 });
 
@@ -36,7 +39,8 @@ const fields: { key: keyof UserProfile; label: string }[] = [
 ];
 
 function Profile() {
-  const { profile, setProfile, background, setBackground } = useDemo();
+  const { data: { profile, background } } = useSuspenseQuery(profileQuery);
+  const save = useSaveProfile();
   const [p, setP] = useState(profile);
   const [b, setB] = useState(background);
   const [error, setError] = useState("");
@@ -48,8 +52,8 @@ function Profile() {
         <p className="text-sm text-muted-foreground">{p.currentRole}</p>
         <span className="mt-3 rounded-full bg-success-soft px-3 py-1 text-xs font-medium text-success">Goal: {p.targetRole}</span>
       </div>
-      <SectionCard title="Personal details" description="Saved for this session until accounts are connected." className="lg:col-span-2">
-        <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); if (![p.name, p.currentRole, p.targetRole, b.education, b.experience, b.technicalSkills, b.softSkills, b.industry].every((s) => s.trim()) || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(p.email)) { setError("Please complete your profile and enter a valid email."); return; } setError(""); setProfile(p); setBackground(b); toast.success("Profile updated for this temporary demo."); }}>
+      <SectionCard title="Personal details" description="Saved to your account." className="lg:col-span-2">
+        <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); if (![p.name, p.currentRole, p.targetRole, b.education, b.experience, b.technicalSkills, b.softSkills, b.industry].every((s) => s.trim()) || !isValidEmail(p.email)) { setError("Please complete your profile and enter a valid email."); return; } setError(""); save.mutate({ profile: p, background: b }, { onSuccess: (r) => toast.success(r.emailChangePending ? "Profile saved. Check both inboxes to confirm your new email address." : "Profile saved.") }); }}>
           <div className="grid gap-4 sm:grid-cols-2">
             {fields.map((f) => (
               <div key={f.key} className="space-y-1.5"><Label htmlFor={f.key}>{f.label}</Label>
@@ -61,7 +65,7 @@ function Profile() {
           {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => { setP(profile); setB(background); setError(""); }}>Discard edits</Button>
-            <Button type="submit">Save changes</Button>
+            <Button type="submit" disabled={save.isPending}>{save.isPending ? "Saving…" : "Save changes"}</Button>
           </div>
         </form>
       </SectionCard>

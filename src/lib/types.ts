@@ -22,3 +22,6 @@ export type PortfolioProject = {
   difficulty: "Beginner" | "Intermediate"; duration: string; skills: string[]; deliverables: string[];
 };
 export type WeeklyPlan = { week: number; taskId: string; topic: string; objective: string; exercise: string; project: string; hours: number; resource: string; url: string };
+export type PlanWeek = WeeklyPlan & { id: string; completed: boolean };
+export type SkillAnalysis = { id: string; targetRole: string; jobDescription: string; readiness: number; createdAt: string; skills: SkillLevel[] };
+export type ResumeFile = { id: string; fileName: string; storagePath: string; sizeBytes: number };

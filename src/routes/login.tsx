@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AuthCard } from "@/components/landing/auth-card";
 
 export const Route = createFileRoute("/login")({
+  validateSearch: (search: Record<string, unknown>): { redirect?: string } => (typeof search["redirect"] === "string" ? { redirect: search["redirect"] } : {}),
   head: () => ({
     meta: [
       { title: "Log In — CareerPilot AI" },
@@ -12,5 +13,10 @@ export const Route = createFileRoute("/login")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  component: () => <AuthCard key="login" mode="login" />,
+  component: Login,
 });
+
+function Login() {
+  const { redirect } = Route.useSearch();
+  return <AuthCard key="login" mode="login" redirectTo={redirect} />;
+}

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { Plus, Trash2, Search, Pencil } from "lucide-react";
 import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { toast } from "sonner";
@@ -10,13 +11,14 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SectionCard } from "@/components/common/section-card";
 import { StatusBadge } from "@/components/common/status-badge";
-import { applications as seed, applicationStatuses } from "@/lib/demo-data";
-import type { ApplicationStatus, JobApplication } from "@/lib/types";
-import { useDemo } from "@/components/demo-provider";
+import { applicationStatuses } from "@/lib/demo-data";
+import type { ApplicationStatus } from "@/lib/types";
+import { applicationsQuery } from "@/lib/api/queries";
+import { useDeleteApplication, useSaveApplication, useSetApplicationStatus } from "@/lib/api/mutations";
 import { filterApplications, isApplicationStatus } from "@/lib/demo-rules";
 import { Textarea } from "@/components/ui/textarea";
 
-export const Route = createFileRoute("/applications")({
+export const Route = createFileRoute("/_authenticated/applications")({
   head: () => ({
     meta: [
       { title: "Applications — CareerPilot AI" },
@@ -27,13 +29,17 @@ export const Route = createFileRoute("/applications")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
+  loader: ({ context }) => context.queryClient.ensureQueryData(applicationsQuery),
   component: Applications,
 });
 
 const colors = ["var(--muted-foreground)", "var(--chart-1)", "var(--chart-3)", "var(--chart-2)", "var(--destructive)"];
 
 function Applications() {
-  const { applications: apps, setApplications: setApps } = useDemo();
+  const { data: apps } = useSuspenseQuery(applicationsQuery);
+  const save = useSaveApplication();
+  const setAppStatus = useSetApplicationStatus();
+  const remove = useDeleteApplication();
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<string>("All");
   const [open, setOpen] = useState(false);
@@ -49,10 +55,10 @@ function Applications() {
     e.preventDefault();
     if (!form.company.trim() || !form.role.trim() || !form.appliedOn) { setError("Company, role and application date are required."); return; }
     if (form.jobUrl && !/^https?:\/\//i.test(form.jobUrl)) { setError("Use a complete http or https job URL."); return; }
-    const entry: JobApplication = { id: editing ?? crypto.randomUUID(), ...form, company: form.company.trim(), role: form.role.trim(), location: form.location || "—" };
-    setApps((apps) => editing ? apps.map((a) => a.id === editing ? entry : a) : [entry, ...apps]);
-    setForm(blank); setEditing(null); setError(""); setOpen(false);
-    toast.success("Application updated in this temporary demo.");
+    save.mutate({ id: editing, form }, { onSuccess: () => {
+      setForm(blank); setEditing(null); setError(""); setOpen(false);
+      toast.success(editing ? "Application updated." : "Application added.");
+    } });
   };
 
   return (
@@ -82,7 +88,7 @@ function Applications() {
             <SelectContent><SelectItem value="All">All statuses</SelectItem>{applicationStatuses.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
           </Select>
         </div>
-        {list.length === 0 ? <p className="py-10 text-center text-sm text-muted-foreground">No applications match.</p> : (
+        {list.length === 0 ? <p className="py-10 text-center text-sm text-muted-foreground">{apps.length === 0 ? "No applications yet. Click Add to track your first one." : "No applications match."}</p> : (
           <ul className="divide-y">
             {list.map((a) => (
               <li key={a.id} className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center">
@@ -95,12 +101,12 @@ function Applications() {
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <StatusBadge status={a.status} />
-                  <Select value={a.status} onValueChange={(v) => { if (isApplicationStatus(v)) setApps((p) => p.map((x) => x.id === a.id ? { ...x, status: v } : x)); }}>
+                  <Select value={a.status} onValueChange={(v) => { if (isApplicationStatus(v)) setAppStatus.mutate({ id: a.id, status: v }); }}>
                     <SelectTrigger className="h-8 w-32 text-xs" aria-label="Change status"><SelectValue /></SelectTrigger>
                     <SelectContent>{applicationStatuses.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
                   </Select>
-                  <Button variant="ghost" size="icon" aria-label={`Edit ${a.company} application`} title="Edit application" onClick={() => { setEditing(a.id); setError(""); setForm({ company: a.company, role: a.role, location: a.location, status: a.status, appliedOn: a.appliedOn, jobUrl: a.jobUrl ?? "", interviewOn: a.interviewOn ?? "", notes: a.notes ?? "" }); setOpen(true); }}><Pencil /></Button>
-                  <Button variant="ghost" size="icon" aria-label="Delete" title="Delete application" onClick={() => { setApps((p) => p.filter((x) => x.id !== a.id)); toast("Application removed"); }}>
+                  <Button variant="ghost" size="icon" aria-label={`Edit ${a.company} application`} title="Edit application" onClick={() => { setEditing(a.id); setError(""); setForm({ company: a.company, role: a.role, location: a.location === "—" ? "" : a.location, status: a.status, appliedOn: a.appliedOn, jobUrl: a.jobUrl ?? "", interviewOn: a.interviewOn ?? "", notes: a.notes ?? "" }); setOpen(true); }}><Pencil /></Button>
+                  <Button variant="ghost" size="icon" aria-label="Delete" title="Delete application" onClick={() => remove.mutate(a.id, { onSuccess: () => toast("Application removed") })}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
@@ -128,7 +134,7 @@ function Applications() {
             </div>
             {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
             <p className="text-xs text-muted-foreground">Changes are temporary and reset on refresh.</p>
-            <DialogFooter><Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button><Button type="submit">Save</Button></DialogFooter>
+            <DialogFooter><Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button><Button type="submit" disabled={save.isPending}>{save.isPending ? "Saving…" : "Save"}</Button></DialogFooter>
           </form>
         </DialogContent>
       </Dialog>

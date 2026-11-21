@@ -1,5 +1,5 @@
-import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { Clock, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -7,10 +7,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { SectionCard } from "@/components/common/section-card";
 import { AiNotice } from "@/components/common/ai-notice";
-import { roadmap as seed, weeklyPlans } from "@/lib/demo-data";
-import { useDemo } from "@/components/demo-provider";
+import { planQuery } from "@/lib/api/queries";
+import { useResetProgress, useTogglePlanWeek, useToggleRoadmapTask } from "@/lib/api/mutations";
 
-export const Route = createFileRoute("/roadmap")({
+export const Route = createFileRoute("/_authenticated/roadmap")({
   head: () => ({
     meta: [
       { title: "Learning Roadmap — CareerPilot AI" },
@@ -21,15 +21,16 @@ export const Route = createFileRoute("/roadmap")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
+  loader: ({ context }) => context.queryClient.ensureQueryData(planQuery),
   component: Roadmap,
 });
 
 function Roadmap() {
-  const { roadmap: phases, setRoadmap: setPhases, completedWeeks, setCompletedWeeks } = useDemo();
-  const all = phases.flatMap((p) => p.tasks);
-  const pct = Math.round(completedWeeks.length / weeklyPlans.length * 100);
-  const toggle = (pid: string, tid: string) =>
-    setPhases((ps) => ps.map((p) => p.id !== pid ? p : { ...p, tasks: p.tasks.map((t) => t.id === tid ? { ...t, done: !t.done } : t) }));
+  const { data: { weeks: weeklyPlans, phases, completedWeeks } } = useSuspenseQuery(planQuery);
+  const toggleWeek = useTogglePlanWeek();
+  const toggleTask = useToggleRoadmapTask();
+  const reset = useResetProgress();
+  const pct = weeklyPlans.length ? Math.round(completedWeeks.length / weeklyPlans.length * 100) : 0;
 
   return (
     <div className="space-y-6">
@@ -38,11 +39,11 @@ function Roadmap() {
           <div className="mb-2 flex justify-between text-sm"><span className="font-medium">Overall progress</span><span className="text-muted-foreground">{pct}%</span></div>
           <Progress value={pct} className="h-2.5" />
         </div>
-        <Button variant="outline" onClick={() => { setPhases(seed); setCompletedWeeks([1, 2]); toast.info("Sample roadmap restored. No AI generation was performed."); }}><Sparkles className="h-4 w-4" /> Reset sample plan</Button>
+        <Button variant="outline" disabled={reset.isPending} onClick={() => reset.mutate({ includeProjects: false }, { onSuccess: () => toast.info("Learning plan reset. All weeks and tasks are unticked.") })}><Sparkles className="h-4 w-4" /> Reset sample plan</Button>
       </div>
-      <AiNotice>Sample Data Analyst roadmap — not AI-generated. Progress stays in this demo until refresh.</AiNotice>
-      <SectionCard title="Week-by-week plan" description="12 weeks · objectives, exercises and mini-projects">
-        <div className="grid gap-4 md:grid-cols-2">{weeklyPlans.map((w) => <article key={w.week} className="card-surface p-4"><div className="flex items-start gap-3"><Checkbox id={`week-${w.week}`} checked={completedWeeks.includes(w.week)} onCheckedChange={(checked) => { setCompletedWeeks((weeks) => checked ? [...weeks, w.week] : weeks.filter((v) => v !== w.week)); }} className="mt-1" /><div className="min-w-0"><label htmlFor={`week-${w.week}`} className="cursor-pointer font-semibold">Week {w.week} · {w.topic}</label><p className="mt-1 text-xs text-primary">{w.hours} study hours</p></div></div><p className="mt-3 text-sm text-muted-foreground">{w.objective}</p><p className="mt-3 text-sm"><span className="font-medium">Exercise: </span>{w.exercise}</p><p className="mt-2 text-sm"><span className="font-medium">Mini-project: </span>{w.project}</p><a className="mt-3 inline-block text-sm text-primary underline underline-offset-4" href={w.url} target="_blank" rel="noopener noreferrer">{w.resource} ↗</a></article>)}</div>
+      <AiNotice>Data Analyst roadmap template — not AI-generated yet. Your progress is saved to your account.</AiNotice>
+      <SectionCard title="Week-by-week plan" description={`${weeklyPlans.length} weeks · objectives, exercises and mini-projects`}>
+        <div className="grid gap-4 md:grid-cols-2">{weeklyPlans.map((w) => <article key={w.id} className="card-surface p-4"><div className="flex items-start gap-3"><Checkbox id={`week-${w.week}`} checked={w.completed} onCheckedChange={(checked) => toggleWeek.mutate({ id: w.id, completed: checked === true })} className="mt-1" /><div className="min-w-0"><label htmlFor={`week-${w.week}`} className="cursor-pointer font-semibold">Week {w.week} · {w.topic}</label><p className="mt-1 text-xs text-primary">{w.hours} study hours</p></div></div><p className="mt-3 text-sm text-muted-foreground">{w.objective}</p><p className="mt-3 text-sm"><span className="font-medium">Exercise: </span>{w.exercise}</p><p className="mt-2 text-sm"><span className="font-medium">Mini-project: </span>{w.project}</p><a className="mt-3 inline-block text-sm text-primary underline underline-offset-4" href={w.url} target="_blank" rel="noopener noreferrer">{w.resource} ↗</a></article>)}</div>
       </SectionCard>
       <div className="grid gap-6 lg:grid-cols-3">
         {phases.map((p, i) => {
@@ -54,7 +55,7 @@ function Roadmap() {
                 {p.tasks.map((t) => (
                   <li key={t.id}>
                     <label className="flex cursor-pointer gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50">
-                      <Checkbox checked={t.done} onCheckedChange={() => toggle(p.id, t.id)} className="mt-0.5" />
+                      <Checkbox checked={t.done} onCheckedChange={(checked) => toggleTask.mutate({ id: t.id, done: checked === true })} className="mt-0.5" />
                       <span className="min-w-0">
                         <span className={`block text-sm font-medium ${t.done ? "text-muted-foreground line-through" : ""}`}>{t.title}</span>
                         <span className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">{t.resource} · <Clock className="h-3 w-3" />{t.hours}h</span>
